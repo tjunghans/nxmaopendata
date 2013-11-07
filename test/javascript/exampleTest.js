@@ -2,7 +2,7 @@
 	'use strict';
 
 /*
-	module("Minesweeper", {
+	module("Example", {
 		setup: function() {
 		}, teardown: function() {
 		}
