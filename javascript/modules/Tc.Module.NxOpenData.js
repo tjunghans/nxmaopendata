@@ -1,6 +1,8 @@
 (function($, window) {
 	"use strict";
 
+	var Lab = window.Lab;
+
 	/**
 	 * Default module implementation.
 	 *
@@ -68,7 +70,7 @@
 
 					var itemLat = item.properties.geo_latitude,
 						itemLon = item.properties.geo_longitude,
-						itemPoint = new Point(itemLat, itemLon);
+						itemPoint = new Lab.Point(itemLat, itemLon);
 
 					// First check clusters
 					var cluster = mod.findClusterWithinDistance(itemPoint, mod.clusterDistance);
@@ -78,7 +80,7 @@
 
 						//mod.getLatLonWithinDistance(itemLat, itemLon, data, mod.clusterDistance);
 
-						var newCluster = new Cluster(itemPoint);
+						var newCluster = new Lab.Cluster(itemPoint);
 
 						mod.clusters.push(newCluster);
 
@@ -159,65 +161,7 @@
 
 	});
 
-	function Point(lat, lon) {
-		this.init(lat, lon);
-	}
 
-	Point.prototype = {
-		constructor : Point,
-		init : function (lat, lon) {
-			this.lat = lat;
-			this.lon = lon;
-		}
-	};
 
-	function Cluster(point) {
-		this.points = [];
-		this.center = null;
-		this.init(point);
-	}
 
-	Cluster.prototype = {
-		constructor : Cluster,
-		init : function (point) {
-
-			this.addPoint(point);
-			this.center = this.getCenter();
-		},
-
-		/**
-		 *
-		 * @param {Point} point
-		 */
-		addPoint : function (point) {
-			this.points.push(point);
-			this._setCenter();
-		},
-
-		_determineCenter : function (points) {
-			var pointsCount = points.length;
-			var latTotal = 0;
-			var lonTotal = 0;
-
-			_.each(points, function (point, index, list) {
-				latTotal += point.lat;
-				lonTotal += point.lon;
-			});
-
-			return new Point(latTotal / pointsCount, lonTotal / pointsCount);
-
-		},
-
-		_setCenter : function () {
-			this.center = this._determineCenter(this.points);
-		},
-
-		getCenter : function () {
-			return this.center;
-		},
-
-		getPoints : function () {
-			return this.points;
-		}
-	}
 }(Tc.$, window));
