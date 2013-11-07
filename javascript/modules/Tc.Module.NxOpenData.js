@@ -103,26 +103,28 @@
 				map.addLayer(osm);
 
 
-
-
-
 				// DEBUG START
 				console.log('Entries : ', data.length);
 				console.log('Clusters :', mod.clusters.length);
 				console.log('Total connections on map: ', clusterWorkConnections.length);
+				// DEBUG END
 
-				// 1. Cluster circles
+				// 1. Add connections
+				_.each(clusterWorkConnections, function (connection) {
+					mod.addClusterWorkConnection(map, connection.clusterCenter, connection.workPoint, connection.connections);
+				});
+
+
+				// 2. Cluster circles
 				_.each(mod.clusters, function (cluster) {
 					mod.addClusterLocation(map, cluster.getCenter(), cluster.getPoints().length)
 				});
 
-				console.dir(clusterWorkConnections);
+				_.each(clusterWorkConnections, function (connection) {
+					mod.addClusterWorkConnection(map, connection.clusterCenter, connection.workPoint, connection.connections);
+					mod.addWorkLocation(map, connection.workPoint)
+				});
 
-
-
-
-
-				// DEBUG END
 
 			});
 
@@ -146,6 +148,23 @@
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.5
+			}).addTo(map);
+		},
+
+		addWorkLocation : function (map, point) {
+			var circle = L.circle([point.lat, point.lon], 300, {
+				color: 'lightgreen',
+				fillColor: '#0f0',
+				fillOpacity: 1
+			}).addTo(map);
+		},
+
+		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
+			var polygon = L.polygon([
+				[clusterCenter.lat, clusterCenter.lon],
+				[workPoint.lat, workPoint.lon]
+			], {
+				weight: connections
 			}).addTo(map);
 		},
 
