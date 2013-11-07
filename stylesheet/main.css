@@ -357,23 +357,7 @@ table {
   overflow: hidden;
   width: 100%;
 }
-.col {
-  float: left;
-  width: 50%;
-}
-.mod-minesweeper table {
-  border-collapse: collapse;
-}
-.mod-minesweeper td {
-  border: solid 1px black;
-  cursor: pointer;
-  height: 30px;
-  width: 30px;
-  text-align: center;
-}
-.mod-minesweeper .kaboom {
-  background-color: red;
-}
-.mod-minesweeper .safe {
-  background-color: lightgreen;
+.mod-nx-open-data .widget-map {
+  height: 600px;
+  max-width: 800px;
 }
