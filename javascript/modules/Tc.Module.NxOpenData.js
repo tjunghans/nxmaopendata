@@ -92,27 +92,35 @@
 					};
 				});
 
+				var map = new L.Map('map');
+				// create the tile layer with correct attribution
+				var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+				var osmAttrib='Map data Â© OpenStreetMap contributors';
+				var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
+
+				// start the map in South-East England
+				map.setView(new L.LatLng(47.3717,8.5359),8);
+				map.addLayer(osm);
+
+
+
+
+
 				// DEBUG START
 				console.log('Entries : ', data.length);
 				console.log('Clusters :', mod.clusters.length);
 				console.log('Total connections on map: ', clusterWorkConnections.length);
 
-				// 1. Location circles
+				// 1. Cluster circles
 				_.each(mod.clusters, function (cluster) {
-					console.log(cluster.getCenter(), cluster.getPoints().length);
+					mod.addClusterLocation(map, cluster.getCenter(), cluster.getPoints().length)
 				});
 
 				console.dir(clusterWorkConnections);
 
-				var map = new L.Map('map');
-				// create the tile layer with correct attribution
-				var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-				var osmAttrib='Map data Â© OpenStreetMap contributors';
-				var osm = new L.TileLayer(osmUrl, {minZoom: 8, maxZoom: 18, attribution: osmAttrib});
 
-				// start the map in South-East England
-				map.setView(new L.LatLng(47.3717,8.5359),8);
-				map.addLayer(osm);
+
+
 
 				// DEBUG END
 
@@ -131,6 +139,14 @@
 			});
 
 			callback();
+		},
+
+		addClusterLocation : function (map, point, clusterSize) {
+			var circle = L.circle([point.lat, point.lon], 500 * clusterSize, {
+				color: 'red',
+				fillColor: '#f03',
+				fillOpacity: 0.5
+			}).addTo(map);
 		},
 
 		calculateDistance : function (lat1, lon1, lat2, lon2) {
