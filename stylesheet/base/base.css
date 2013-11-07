@@ -1,0 +1,13 @@
+.page {
+  clear: both;
+  overflow: hidden;
+  width: 100%;
+}
+.col {
+  float: left;
+  width: 50%;
+}
+
+.is-hidden {
+	display: none !important;
+}

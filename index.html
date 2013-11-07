@@ -1,0 +1,62 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="stylesheet/main.css" />
+	<title>Lab Opendata</title>
+</head>
+<body>
+<div class="page">
+	<h1>Open Data. Lab. Namics.</h1>
+
+	<div class="mod mod-nx-open-data">
+		<div class="widget-competence"></div>
+		<div class="widget-table"></div>
+
+	</div>
+</div>
+
+<script type="text/javascript" src="javascript/vendor/jquery.js"></script>
+<script type="text/javascript" src="javascript/vendor/underscore-min.js"></script>
+<script type="text/javascript" src="javascript/vendor/doT.min.js"></script>
+<script type="text/javascript" src="javascript/vendor/moveabletype.latlong.js"></script>
+<script type='text/javascript' src='javascript/vendor/terrific-2.0.1.min.js'></script>
+<script type='text/javascript' src='javascript/vendor/knockout-2.3.0.js'></script>
+<script type='text/javascript' src='javascript/modules/Tc.Module.NxOpenData.js'></script>
+<script type='text/javascript' src='javascript/bootstrap.js'></script>
+
+<script type="text/template" id="tmpl-FullDataTable">
+<h2>Alle Daten</h2>
+	<table>
+		<tr><td>Arbeitsort</td><td>Wohnort</td><td>Kompetenz</td>
+			<td>Lat</td>
+			<td>Long</td>
+		</tr>
+	{{~it :value:index}}
+
+	<tr>
+		<td>{{=value.properties['Ort A']}}</td>
+		<td>{{=value.properties['Ort H']}}</td>
+		<td>{{=value.properties['Kompetenz']}}</td>
+		<td>{{=value.properties['geo_latitude']}}</td>
+		<td>{{=value.properties['geo_longitude']}}</td>
+	</tr>
+	{{~}}
+
+	</table>
+</script>
+
+<script type="text/template" id="tmpl-ByCompetence">
+<h2>Kompetenz Zähler</h2>
+<table>
+		{{~it :value:index}}
+	<tr>
+		<td>{{=value.competence}}</td>
+		<td>{{=value.count}}</td>
+	</tr>
+		{{~}}
+</table>
+
+</script>
+
+</body>
+</html>
