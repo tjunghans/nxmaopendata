@@ -18,13 +18,15 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 10,
+		clusterDistance : 20,
 
 		/**
 		 *
 		 * @type Cluster
 		 */
 		clusters : [],
+
+		clusterWorkConnections : [],
 
 		/**
 		 * Hook function to do all of your module stuff.
@@ -46,12 +48,12 @@
 
 			$ctx.on('dataavailable', function (e, data) {
 
-				console.log('Entries : ', data.length);
 				_.each(data, function (item, key, list) {
 
 					var itemLat = item.properties.geo_latitude,
 						itemLon = item.properties.geo_longitude,
-						itemPoint = new Lab.Point(itemLat, itemLon);
+						itemPoint = new Lab.Point(itemLat, itemLon),
+						usedCluster = null;
 
 					// First check clusters
 					var cluster = mod.findClusterWithinDistance(itemPoint, mod.clusterDistance);
@@ -62,18 +64,40 @@
 						var newCluster = new Lab.Cluster(itemPoint);
 
 						mod.clusters.push(newCluster);
+						usedCluster = newCluster;
 
 					} else {
 						cluster.addPoint(itemPoint);
+						usedCluster = cluster;
 					}
+
+					mod.clusterWorkConnections.push(
+						{
+							cluster : usedCluster,
+							workPoint : new Lab.Point(item.properties.geo_latitude_A, item.properties.geo_longitude_A)
+						}
+					);
 
 				});
 
+				// DEBUG START
+				console.log('Entries : ', data.length);
 				console.log('Clusters :', mod.clusters.length);
-				
+				console.log('ClusterWork Connections :', mod.clusterWorkConnections.length);
+
 				_.each(mod.clusters, function (cluster) {
 					console.log(cluster.getCenter(), cluster.getPoints().length);
 				});
+
+				var grp = _.groupBy(mod.clusterWorkConnections, function (item) {
+				
+					return item.workPoint + item.cluster.getCenter();
+				});
+
+				console.log('Total connections on map: ', _.toArray(grp).length);
+				console.dir(grp);
+
+				// DEBUG END
 
 			});
 
@@ -85,7 +109,6 @@
 				url : url,
 				dataType : 'json',
 				success : function (data) {
-
 					mod.$ctx.trigger('dataavailable', [data.features]);
 				}
 			});

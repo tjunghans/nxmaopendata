@@ -15,6 +15,9 @@
 		init : function (lat, lon) {
 			this.lat = lat;
 			this.lon = lon;
+		},
+		toString : function () {
+			return this.lat + ',' + this.lon;
 		}
 	};
 
