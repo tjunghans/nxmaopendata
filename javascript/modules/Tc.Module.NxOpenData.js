@@ -38,30 +38,11 @@
 				$ctx = mod.$ctx;
 
 			var url = '/resources/nxopendata.json';
-			var tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
-			var tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
+			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
+			mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
 
-
-			$ctx.on('dataavailable', function (e, data) {
-				$ctx.find('.widget-table').html(tmplfullDataTable(data));
-			});
-
-			$ctx.on('dataavailable', function (e, data) {
-				var byCompetence = _.countBy(data, function(obj){
-					return obj.properties['Kompetenz'];
-				});
-
-				var competenceList = [];
-
-				 _.each(byCompetence, function (value, key, list) {
-					competenceList.push({
-						competence : key,
-						count : value
-					});
-				});
-
-				$ctx.find('.widget-competence').html(tmplByCompetence(competenceList));
-			});
+			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
+			$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
 
 			$ctx.on('dataavailable', function (e, data) {
 
@@ -78,8 +59,6 @@
 					// If no cluster is found, a new one is created
 					if (cluster === null) {
 
-						//mod.getLatLonWithinDistance(itemLat, itemLon, data, mod.clusterDistance);
-
 						var newCluster = new Lab.Cluster(itemPoint);
 
 						mod.clusters.push(newCluster);
@@ -91,6 +70,7 @@
 				});
 
 				console.log('Clusters :', mod.clusters.length);
+				
 				_.each(mod.clusters, function (cluster) {
 					console.log(cluster.getCenter(), cluster.getPoints().length);
 				});
@@ -140,7 +120,7 @@
 		},
 
 		/**
-		 *
+		 * @method findClusterWithinDistance
 		 * @param {Point} point
 		 * @param {number} distance
 		 * @returns {null|Cluster} returns cluster on success
@@ -157,6 +137,34 @@
 			}
 
 			return null;
+		},
+
+		generateFullTable : function (e, data) {
+			var mod = this,
+				$ctx = mod.$ctx;
+
+			$ctx.find('.widget-table').html(mod.tmplfullDataTable(data));
+		},
+
+		generateCompetenceTable : function (e, data) {
+			var mod = this,
+				$ctx = mod.$ctx;
+
+			var byCompetence = _.countBy(data, function(obj){
+				return obj.properties['Kompetenz'];
+			});
+
+			var competenceList = [];
+
+			_.each(byCompetence, function (value, key, list) {
+				competenceList.push({
+					competence : key,
+					count : value
+				});
+			});
+
+			$ctx.find('.widget-competence').html(mod.tmplByCompetence(competenceList));
+
 		}
 
 	});

@@ -1,5 +1,11 @@
 (function (window, undefined) {
 
+	/**
+	 *
+	 * @param {number} lat
+	 * @param {number} lon
+	 * @constructor
+	 */
 	function Point(lat, lon) {
 		this.init(lat, lon);
 	}
