@@ -18,7 +18,7 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 20,
+		clusterDistance : 0.1,
 
 		/**
 		 *
@@ -114,14 +114,12 @@
 					mod.addClusterWorkConnection(map, connection.clusterCenter, connection.workPoint, connection.connections);
 				});
 
-
 				// 2. Cluster circles
 				_.each(mod.clusters, function (cluster) {
 					mod.addClusterLocation(map, cluster.getCenter(), cluster.getPoints().length)
 				});
 
 				_.each(clusterWorkConnections, function (connection) {
-					mod.addClusterWorkConnection(map, connection.clusterCenter, connection.workPoint, connection.connections);
 					mod.addWorkLocation(map, connection.workPoint)
 				});
 
@@ -149,6 +147,8 @@
 				fillColor: '#f03',
 				fillOpacity: 0.5
 			}).addTo(map);
+
+			circle.bindPopup('Leute die hier wohnen: ' + clusterSize);
 		},
 
 		addWorkLocation : function (map, point) {
@@ -164,7 +164,8 @@
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
 			], {
-				weight: connections
+				weight: connections,
+				opacity: 0.5
 			}).addTo(map);
 		},
 
