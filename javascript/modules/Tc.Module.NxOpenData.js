@@ -80,22 +80,29 @@
 
 				});
 
+				var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
+					return item.workPoint + ';' + item.cluster.getCenter();
+				});
+
+				var clusterWorkConnections = _.map(groupByWorkCoordinates, function(item, key){
+					return {
+						workPoint : item[0].workPoint,
+						clusterCenter : item[0].cluster.getCenter(),
+						connections : item.length
+					};
+				});
+
 				// DEBUG START
 				console.log('Entries : ', data.length);
 				console.log('Clusters :', mod.clusters.length);
-				console.log('ClusterWork Connections :', mod.clusterWorkConnections.length);
+				console.log('Total connections on map: ', clusterWorkConnections.length);
 
+				// 1. Location circles
 				_.each(mod.clusters, function (cluster) {
 					console.log(cluster.getCenter(), cluster.getPoints().length);
 				});
 
-				var grp = _.groupBy(mod.clusterWorkConnections, function (item) {
-				
-					return item.workPoint + item.cluster.getCenter();
-				});
-
-				console.log('Total connections on map: ', _.toArray(grp).length);
-				console.dir(grp);
+				console.dir(clusterWorkConnections);
 
 				// DEBUG END
 
