@@ -12,3 +12,6 @@
 .mod-nx-open-data #map {
   min-height: 600px;
 }
+.mod-nx-open-data .large-2.columns {
+  font-size: 0.8em;
+}

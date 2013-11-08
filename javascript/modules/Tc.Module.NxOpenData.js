@@ -18,7 +18,7 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 10,
+		clusterDistance : 1,
 
 		mapCenter : {
 			lat : 47.3647388,
@@ -109,7 +109,6 @@
 			};
 
 			mod.koModel.radioSelectedOptionValue.subscribe(function (value) {
-				console.log(value);
 				mod.clusterDistance = parseFloat(value);
 				mod.resetMap();
 			});
@@ -124,7 +123,7 @@
 			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(namicsOfficesFormattedForTemplate));
 
 			// Event handlers
-			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
+			//$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
 
 			// Displays competency count. Currently commented out, because no data is available
 			//$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
@@ -141,9 +140,6 @@
 				mod.map.panTo(new L.LatLng(lat, lon));
 			});
 
-			$ctx.on('click', '#resetMap', function () {
-				mod.resetMap();
-			});
 
 			/**
 			 * For each latlng iterate through existing clusters (get their center)
@@ -361,7 +357,7 @@
 
 			// Source of other layers: https://github.com/leaflet-extras/leaflet-providers
 			//osm = L.tileLayer.provider('Stamen.Toner');
-			osm = L.tileLayer.provider('Acetate');
+			osm = L.tileLayer.provider('Nokia.normalGreyDay');
 
 			mod.map.addLayer(osm);
 
@@ -370,7 +366,7 @@
 			mod.clusterWorkConnectionLayer = new L.layerGroup();
 			mod.workLocationLayer = new L.layerGroup();
 
-			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),8);
+			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),12);
 		},
 
 		getEmployeeNumberByWorkLocation : function (workPoint) {
@@ -387,8 +383,8 @@
 				clusterScale = Math.log(clusterSize);
 
 			var circle = L.circle([point.lat, point.lon], radius * clusterScale, {
-				color: 'red',
-				fillColor: '#f03',
+				color: '#0093c1',
+				fillColor: '#63c2d8',
 				fillOpacity: 0.5
 			});
 
@@ -402,8 +398,8 @@
 			var mod = this;
 
 			var circle = L.circle([point.lat, point.lon], 300, {
-				color: 'lightgreen',
-				fillColor: '#0f0',
+				color: '#f99b00',
+				fillColor: '#f9b300',
 				fillOpacity: 1
 			});
 
@@ -418,19 +414,32 @@
 			var mod = this,
 				factor = 2,
 				scale = Math.log(connections),
-				opacity = 0.3 + 0.1 * scale;
+				opacity = 0.5 + 0.1 * scale;
 
 			var polyline = L.polyline([
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
 			], {
-				weight: 1 + factor * scale,
-				opacity: opacity
+				weight: 1.2 + factor * scale,
+				opacity: opacity,
+				color: '#00539e'
 			});
 
 			mod.clusterWorkConnectionLayer.addLayer(polyline);
 		},
 
+		getNamicsColor : function (connections){
+			if(connections < 2){
+				//1
+				return "#63C2D8";
+			}else if(connections < 11){
+				//2-10
+				return "#0093C1";
+			}else{
+				//10+
+				return "#00539E";
+			}
+		},
 
 		/**
 		 * Uses the moveabletype.latlong library to determine the distance in km between two points
