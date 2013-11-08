@@ -276,7 +276,12 @@
 		},
 
 		addClusterLocation : function (map, point, clusterSize) {
-			var circle = L.circle([point.lat, point.lon], 500 * clusterSize, {
+
+
+			var radius = 500,
+				clusterScale = Math.log(clusterSize);
+
+			var circle = L.circle([point.lat, point.lon], radius * clusterScale, {
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.5
@@ -298,12 +303,17 @@
 		},
 
 		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
+
+			var factor = 2,
+				scale = Math.log(connections),
+				opacity = 0.3 + 0.1 * scale;
+console.log(opacity);
 			var polygon = L.polyline([
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
 			], {
-				weight: connections,
-				opacity: 0.5
+				weight: 1 + factor * scale,
+				opacity: opacity
 			}).addTo(map);
 		},
 
