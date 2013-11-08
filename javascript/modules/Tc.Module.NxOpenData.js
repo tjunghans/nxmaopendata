@@ -18,7 +18,7 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 2,
+		clusterDistance : 10,
 
 		mapCenter : {
 			lat : 47.3647388,
@@ -114,7 +114,9 @@
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
-			$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
+
+			// Displays competency count. Currently commented out, because no data is available
+			//$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
 
 			$ctx.on('dataavailable', function (e, data) {
 
