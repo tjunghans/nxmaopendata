@@ -256,11 +256,17 @@
 			// create the tile layer with correct attribution
 			var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 			var osmAttrib='Map data Â© OpenStreetMap contributors';
+
+			// Original Layer
 			var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
 
-			// start the map in South-East England
-			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),8);
+			// Source of other layers: https://github.com/leaflet-extras/leaflet-providers
+			//var osm = L.tileLayer.provider('Stamen.Toner');
+			var osm = L.tileLayer.provider('Acetate');
+
 			mod.map.addLayer(osm);
+
+			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),8);
 		},
 
 		getEmployeeNumberByWorkLocation : function (workPoint) {
