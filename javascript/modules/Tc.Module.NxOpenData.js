@@ -75,6 +75,22 @@
 
 				_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
 
+
+				mod.workPlaceMappings = _.groupBy(data, function (item) {
+					return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
+				});
+
+				mod.workPlaces = _.map(mod.workPlaceMappings, function (value, key) {
+					var latLon = key.split(',');
+
+					return {
+						workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
+						employees : value.length
+					}
+				});
+
+
+
 				var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
 					return item.workPoint + ';' + item.cluster.getCenter();
 				});
@@ -95,16 +111,6 @@
 				mod.koModel.employeeClusters(mod.clusters.length);
 				mod.koModel.clusterDistance(mod.clusterDistance);
 				mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
-
-				var groupByWorkplace = _.groupBy(mod.formattedClusterWorkConnections, function (connection) {
-					return connection.workPoint;
-				});
-
-				console.dir(mod.formattedClusterWorkConnections);
-
-				_.map(mod.formattedClusterWorkConnections, function (item, key) {
-
-				});
 
 				// 1. Add connections
 				_.each(mod.formattedClusterWorkConnections, function (connection) {
@@ -205,6 +211,12 @@
 			mod.map.addLayer(osm);
 		},
 
+		getEmployeeNumberByWorkLocation : function (workPoint) {
+			var mappingKey = workPoint.lat + ',' + workPoint.lon;
+
+			return this.workPlaceMappings[mappingKey].length;
+		},
+
 		addClusterLocation : function (map, point, clusterSize) {
 			var circle = L.circle([point.lat, point.lon], 500 * clusterSize, {
 				color: 'red',
@@ -216,11 +228,15 @@
 		},
 
 		addWorkLocation : function (map, point) {
+			var mod = this;
+			
 			var circle = L.circle([point.lat, point.lon], 300, {
 				color: 'lightgreen',
 				fillColor: '#0f0',
 				fillOpacity: 1
 			}).addTo(map);
+
+			circle.bindPopup('Leute die hier arbeiten: ' + mod.getEmployeeNumberByWorkLocation(point));
 		},
 
 		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
