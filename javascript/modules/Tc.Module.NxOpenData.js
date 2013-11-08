@@ -68,6 +68,11 @@
 			'53.54516,9.9879' : {
 				point : new Lab.Point(53.54516,9.9879),
 				name : 'Hamburg'
+			},
+
+			'47.4199015,9.370606' : {
+				point : new Lab.Point(47.4199015,9.370606),
+				name : 'St. Gallen'
 			}
 
 		},
