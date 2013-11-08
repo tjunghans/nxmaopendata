@@ -42,6 +42,31 @@
 
 		koModel : {},
 
+		namicsOffices : {
+			'47.3647388,8.5312022' : {
+				point : new Lab.Point(47.3647388,8.5312022),
+				name : 'Namics Zürich'
+			},
+
+
+			'48.1182,11.5838' : {
+				point : new Lab.Point(48.1182,11.5838),
+				name : 'Namics München'
+
+			},
+
+			'50.0982839,8.6819118' : {
+				point : new Lab.Point(50.0982839,8.6819118),
+				name : 'Namics Frankfurt'
+			},
+
+			'53.54516,9.9879' : {
+				point : new Lab.Point(53.54516,9.9879),
+				name : 'Namics Hamburg'
+			}
+
+		},
+
 		/**
 		 * Hook function to do all of your module stuff.
 		 *
@@ -66,6 +91,8 @@
 				employeeClusters : ko.observable(),
 				clusterWorkConnections : ko.observable()
 			};
+
+
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
@@ -229,14 +256,14 @@
 
 		addWorkLocation : function (map, point) {
 			var mod = this;
-			
+
 			var circle = L.circle([point.lat, point.lon], 300, {
 				color: 'lightgreen',
 				fillColor: '#0f0',
 				fillOpacity: 1
 			}).addTo(map);
 
-			circle.bindPopup('Leute die hier arbeiten: ' + mod.getEmployeeNumberByWorkLocation(point));
+			circle.bindPopup(mod.namicsOffices[point.lat + ',' + point.lon].name + '. Mitarbeiter. ' + mod.getEmployeeNumberByWorkLocation(point));
 		},
 
 		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
