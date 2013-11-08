@@ -98,18 +98,14 @@
 				clusterWorkConnections : ko.observable()
 			};
 
-			var foo = _.map(mod.namicsOffices, function (location) {
-				console.log({
-					point : location.point,
-					name : location.name
-				});
+			var namicsOfficesFormattedForTemplate = _.map(mod.namicsOffices, function (location) {
 				return {
 					point : location.point,
 					name : location.name
 				}
 			});
 
-			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(foo));
+			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(namicsOfficesFormattedForTemplate));
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
