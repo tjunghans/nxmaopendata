@@ -20,6 +20,11 @@
 		 */
 		clusterDistance : 2,
 
+		mapCenter : {
+			lat : 47.3647388,
+			lon : 8.5312022
+		},
+
 		/**
 		 *
 		 * @type Cluster
@@ -45,24 +50,24 @@
 		namicsOffices : {
 			'47.3647388,8.5312022' : {
 				point : new Lab.Point(47.3647388,8.5312022),
-				name : 'Namics Zürich'
+				name : 'Zürich'
 			},
 
 
 			'48.1182,11.5838' : {
 				point : new Lab.Point(48.1182,11.5838),
-				name : 'Namics München'
+				name : 'München'
 
 			},
 
 			'50.0982839,8.6819118' : {
 				point : new Lab.Point(50.0982839,8.6819118),
-				name : 'Namics Frankfurt'
+				name : 'Frankfurt'
 			},
 
 			'53.54516,9.9879' : {
 				point : new Lab.Point(53.54516,9.9879),
-				name : 'Namics Hamburg'
+				name : 'Hamburg'
 			}
 
 		},
@@ -84,6 +89,7 @@
 			// Templates
 			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
 			mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
+			mod.tmplOfficeNavigation = doT.template($('#tmpl-OfficeNavigation').html());
 
 			mod.koModel = {
 				clusterDistance : ko.observable(),
@@ -92,7 +98,18 @@
 				clusterWorkConnections : ko.observable()
 			};
 
-console.dir(mod.namicsOffices);
+			var foo = _.map(mod.namicsOffices, function (location) {
+				console.log({
+					point : location.point,
+					name : location.name
+				});
+				return {
+					point : location.point,
+					name : location.name
+				}
+			});
+
+			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(foo));
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
@@ -115,8 +132,6 @@ console.dir(mod.namicsOffices);
 						employees : value.length
 					}
 				});
-
-
 
 				var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
 					return item.workPoint + ';' + item.cluster.getCenter();
@@ -241,7 +256,7 @@ console.dir(mod.namicsOffices);
 			var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
 
 			// start the map in South-East England
-			mod.map.setView(new L.LatLng(47.3717,8.5359),8);
+			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),8);
 			mod.map.addLayer(osm);
 		},
 
