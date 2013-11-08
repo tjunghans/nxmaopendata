@@ -18,7 +18,7 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 5,
+		clusterDistance : 10,
 
 		mapCenter : {
 			lat : 47.3647388,
@@ -32,6 +32,8 @@
 		clusters : [],
 
 		clusterWorkConnections : [],
+
+		map : null,
 
 		/**
 		 * Holds a collection of objects
@@ -102,8 +104,15 @@
 				employeeClusters : ko.observable(),
 				clusterWorkConnections : ko.observable(),
 				minDistance : ko.observable(),
-				maxDistance : ko.observable()
+				maxDistance : ko.observable(),
+				radioSelectedOptionValue : ko.observable(mod.clusterDistance)
 			};
+
+			mod.koModel.radioSelectedOptionValue.subscribe(function (value) {
+				console.log(value);
+				mod.clusterDistance = parseFloat(value);
+				mod.resetMap();
+			});
 
 			var namicsOfficesFormattedForTemplate = _.map(mod.namicsOffices, function (location) {
 				return {
@@ -121,69 +130,8 @@
 			//$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
 
 			$ctx.on('dataavailable', function (e, data) {
-
-				_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
-
-
-				mod.workPlaceMappings = _.groupBy(data, function (item) {
-					return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
-				});
-
-				mod.workPlaces = _.map(mod.workPlaceMappings, function (value, key) {
-					var latLon = key.split(',');
-
-					return {
-						workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
-						employees : value.length
-					}
-				});
-
-				var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
-					return item.workPoint + ';' + item.cluster.getCenter();
-				});
-
-				mod.formattedClusterWorkConnections = _.map(groupByWorkCoordinates, function(item, key){
-					return {
-						workPoint : item[0].workPoint,
-						clusterCenter : item[0].cluster.getCenter(),
-						connections : item.length
-					};
-				});
-
-				mod.minDistance = mod.getMinDistance(data);
-
-				mod.maxDistance = mod.getMaxDistance(data);
-
-
-
-
-				mod.initMap();
-
-				// Using knockout to fill data column on the right
-
-				mod.koModel.numberOfEmployees(data.length);
-				mod.koModel.employeeClusters(mod.clusters.length);
-				mod.koModel.clusterDistance(mod.clusterDistance);
-				mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
-				mod.koModel.minDistance(mod.minDistance);
-				mod.koModel.maxDistance(mod.maxDistance);
-
-				// 1. Add connections
-				_.each(mod.formattedClusterWorkConnections, function (connection) {
-					mod.addClusterWorkConnection(mod.map, connection.clusterCenter, connection.workPoint, connection.connections);
-				});
-
-				// 2. Cluster circles
-				_.each(mod.clusters, function (cluster) {
-					mod.addClusterLocation(mod.map, cluster.getCenter(), cluster.getPoints().length)
-				});
-
-				// 3. Add Namics locations
-				_.each(mod.formattedClusterWorkConnections, function (connection) {
-					mod.addWorkLocation(mod.map, connection.workPoint)
-				});
-
-
+				mod.data = data;
+				mod.initMapWidget(data);
 			});
 
 			$ctx.on('click', '.widget-map-navigation button', function () {
@@ -191,6 +139,10 @@
 				var lon = $(this).data('lon');
 
 				mod.map.panTo(new L.LatLng(lat, lon));
+			});
+
+			$ctx.on('click', '#resetMap', function () {
+				mod.resetMap();
 			});
 
 			/**
@@ -212,6 +164,105 @@
 			callback();
 		},
 
+		resetMap : function () {
+			var mod = this,
+				$ctx = mod.$ctx;
+
+			// TODO: Refactor
+/*
+			mod.map.remove(); // leafletjs method
+			mod.map = null;
+
+			$('#map').remove();
+
+			$ctx.find('.widget-map').html('<div id="map"></div>');
+*/
+			mod.clusterWorkConnectionLayer.clearLayers();
+
+			mod.clusterLocationLayer.clearLayers();
+
+			mod.workLocationLayer.clearLayers();
+
+			mod.clusters = [];
+			mod.clusterWorkConnections = [];
+
+			mod.initMapWidget(mod.data);
+		},
+
+		initMapWidget : function (data) {
+			var mod = this,
+				$ctx = mod.$ctx;
+
+			_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
+
+
+			mod.workPlaceMappings = _.groupBy(data, function (item) {
+				return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
+			});
+
+			mod.workPlaces = _.map(mod.workPlaceMappings, function (value, key) {
+				var latLon = key.split(',');
+
+				return {
+					workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
+					employees : value.length
+				}
+			});
+
+			var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
+				return item.workPoint + ';' + item.cluster.getCenter();
+			});
+
+			mod.formattedClusterWorkConnections = _.map(groupByWorkCoordinates, function(item, key){
+				return {
+					workPoint : item[0].workPoint,
+					clusterCenter : item[0].cluster.getCenter(),
+					connections : item.length
+				};
+			});
+
+			mod.minDistance = mod.getMinDistance(data);
+
+			mod.maxDistance = mod.getMaxDistance(data);
+
+			if (mod.map === null) {
+				mod.initMap(); // TODO: Refactor
+			}
+
+			// Using knockout to fill data column on the right
+			mod.koModel.numberOfEmployees(data.length);
+			mod.koModel.employeeClusters(mod.clusters.length);
+			mod.koModel.clusterDistance(mod.clusterDistance);
+			mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
+			mod.koModel.minDistance(mod.minDistance);
+			mod.koModel.maxDistance(mod.maxDistance);
+
+			// 1. Add connections
+			_.each(mod.formattedClusterWorkConnections, function (connection) {
+				mod.addClusterWorkConnection(mod.map, connection.clusterCenter, connection.workPoint, connection.connections);
+			});
+
+			// 1.1 The shapes are first added to the layer and then the layer is added to the map
+			mod.clusterWorkConnectionLayer.addTo(mod.map);
+
+			// 2. Cluster circles
+			_.each(mod.clusters, function (cluster) {
+				mod.addClusterLocation(mod.map, cluster.getCenter(), cluster.getPoints().length)
+			});
+
+			// 2.1
+			mod.clusterLocationLayer.addTo(mod.map);
+
+			// 3. Add Namics locations
+			_.each(mod.formattedClusterWorkConnections, function (connection) {
+				mod.addWorkLocation(mod.map, connection.workPoint)
+			});
+
+			// 3.1
+			mod.workLocationLayer.addTo(mod.map);
+		},
+
+
 		getMinDistance : function (data) {
 			var mod = this;
 
@@ -227,6 +278,7 @@
 			return mod.calculateDistance(min.properties.geo_latitude_A, min.properties.geo_longitude_A, min.properties.geo_latitude, min.properties.geo_longitude);
 		},
 
+
 		getMaxDistance : function (data) {
 			var mod = this;
 
@@ -241,6 +293,7 @@
 
 			return mod.calculateDistance(max.properties.geo_latitude_A, max.properties.geo_longitude_A, max.properties.geo_latitude, max.properties.geo_longitude);
 		},
+
 
 		/**
 		 * Creates the clusters (mod.clusters) and then connections between work and clusters (mod.clusterWorkConnections)
@@ -296,7 +349,9 @@
 			var mod = this,
 				osm;
 
-			mod.map = new L.Map('map');
+			if (mod.map === null) {
+				mod.map = new L.Map('map');
+			}
 			// create the tile layer with correct attribution
 			var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 			var osmAttrib='Map data Â© OpenStreetMap contributors';
@@ -310,6 +365,11 @@
 
 			mod.map.addLayer(osm);
 
+			// Create Layer for clusters, connections and namics locations
+			mod.clusterLocationLayer = new L.layerGroup();
+			mod.clusterWorkConnectionLayer = new L.layerGroup();
+			mod.workLocationLayer = new L.layerGroup();
+
 			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),8);
 		},
 
@@ -322,14 +382,18 @@
 		addClusterLocation : function (map, point, clusterSize) {
 
 
-			var radius = 500,
+			var mod = this,
+				radius = 500,
 				clusterScale = Math.log(clusterSize);
 
 			var circle = L.circle([point.lat, point.lon], radius * clusterScale, {
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.5
-			}).addTo(map);
+			});
+
+			// Add to layer instead of directly to map
+			mod.clusterLocationLayer.addLayer(circle);
 
 			circle.bindPopup('Leute die hier wohnen: ' + clusterSize);
 		},
@@ -341,25 +405,32 @@
 				color: 'lightgreen',
 				fillColor: '#0f0',
 				fillOpacity: 1
-			}).addTo(map);
+			});
+
+			mod.workLocationLayer.addLayer(circle);
 
 			circle.bindPopup(mod.namicsOffices[point.lat + ',' + point.lon].name + '. Mitarbeiter. ' + mod.getEmployeeNumberByWorkLocation(point));
 		},
 
+
 		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
 
-			var factor = 2,
+			var mod = this,
+				factor = 2,
 				scale = Math.log(connections),
 				opacity = 0.3 + 0.1 * scale;
 
-			var polygon = L.polyline([
+			var polyline = L.polyline([
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
 			], {
 				weight: 1 + factor * scale,
 				opacity: opacity
-			}).addTo(map);
+			});
+
+			mod.clusterWorkConnectionLayer.addLayer(polyline);
 		},
+
 
 		/**
 		 * Uses the moveabletype.latlong library to determine the distance in km between two points
@@ -378,6 +449,7 @@
 			var p2 = new LatLon(lat2, lon2);
 			return p1.distanceTo(p2);          // in km
 		},
+
 
 		/**
 		 * @method findClusterWithinDistance
@@ -399,12 +471,14 @@
 			return null;
 		},
 
+
 		generateFullTable : function (e, data) {
 			var mod = this,
 				$ctx = mod.$ctx;
 
 			$ctx.find('.widget-table').html(mod.tmplfullDataTable(data));
 		},
+
 
 		generateCompetenceTable : function (e, data) {
 			var mod = this,

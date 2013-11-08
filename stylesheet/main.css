@@ -9,3 +9,6 @@
 .mod-nx-open-data .widget-map {
   height: 800px;
 }
+.mod-nx-open-data #map {
+  min-height: 600px;
+}

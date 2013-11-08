@@ -21,11 +21,26 @@
 	</div>
 	<div class="mod mod-nx-open-data" data-url="resources/nxopendata.json">
 		<div class="row">
+			<div class="large-12 columns">
+				<button id="resetMap">Clear map</button>
+
+				<fieldset>
+					<label><input type="radio" name="clusterDistance" value="0.5" data-bind="checked: radioSelectedOptionValue" /> 500m</label>
+					<label><input type="radio" name="clusterDistance" value="1" data-bind="checked: radioSelectedOptionValue" /> 1km</label>
+					<label><input type="radio" name="clusterDistance" value="2" data-bind="checked: radioSelectedOptionValue" /> 2km</label>
+					<label><input type="radio" name="clusterDistance" value="5" data-bind="checked: radioSelectedOptionValue" /> 5km</label>
+					<label><input type="radio" name="clusterDistance" value="10" data-bind="checked: radioSelectedOptionValue" /> 10km</label>
+				</fieldset>
+			</div>
+		</div>
+		<div class="row">
 			<div class="large-9 columns">
 					<div class="widget-map-navigation">
 
 					</div>
-					<div class="widget-map" id="map"></div>
+					<div class="widget-map">
+						<div id="map"></div>
+					</div>
 					<div class="widget-competence"></div>
 					<div class="widget-table"></div>
 
