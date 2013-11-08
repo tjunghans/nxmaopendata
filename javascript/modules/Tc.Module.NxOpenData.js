@@ -18,7 +18,7 @@
 		 *
 		 * @type number
 		 */
-		clusterDistance : 10,
+		clusterDistance : 5,
 
 		mapCenter : {
 			lat : 47.3647388,
@@ -100,7 +100,9 @@
 				clusterDistance : ko.observable(),
 				numberOfEmployees : ko.observable(),
 				employeeClusters : ko.observable(),
-				clusterWorkConnections : ko.observable()
+				clusterWorkConnections : ko.observable(),
+				minDistance : ko.observable(),
+				maxDistance : ko.observable()
 			};
 
 			var namicsOfficesFormattedForTemplate = _.map(mod.namicsOffices, function (location) {
@@ -148,6 +150,13 @@
 					};
 				});
 
+				mod.minDistance = mod.getMinDistance(data);
+
+				mod.maxDistance = mod.getMaxDistance(data);
+
+
+
+
 				mod.initMap();
 
 				// Using knockout to fill data column on the right
@@ -156,6 +165,8 @@
 				mod.koModel.employeeClusters(mod.clusters.length);
 				mod.koModel.clusterDistance(mod.clusterDistance);
 				mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
+				mod.koModel.minDistance(mod.minDistance);
+				mod.koModel.maxDistance(mod.maxDistance);
 
 				// 1. Add connections
 				_.each(mod.formattedClusterWorkConnections, function (connection) {
@@ -192,11 +203,43 @@
 				success : function (data) {
 					mod.$ctx.trigger('dataavailable', [data.features]);
 
-					ko.applyBindings(mod.koModel, $ctx[0]);
+
 				}
 			});
 
+			ko.applyBindings(mod.koModel, $ctx[0]);
+
 			callback();
+		},
+
+		getMinDistance : function (data) {
+			var mod = this;
+
+			// Get min distance of all
+			var min = _.min(data, function (item) {
+
+				var props = item.properties,
+					distance = mod.calculateDistance(props.geo_latitude_A, props.geo_longitude_A, props.geo_latitude, props.geo_longitude);
+
+				return parseFloat(distance);
+			});
+
+			return mod.calculateDistance(min.properties.geo_latitude_A, min.properties.geo_longitude_A, min.properties.geo_latitude, min.properties.geo_longitude);
+		},
+
+		getMaxDistance : function (data) {
+			var mod = this;
+
+			// Get min distance of all
+			var max = _.max(data, function (item) {
+
+				var props = item.properties,
+					distance = mod.calculateDistance(props.geo_latitude_A, props.geo_longitude_A, props.geo_latitude, props.geo_longitude);
+
+				return parseFloat(distance);
+			});
+
+			return mod.calculateDistance(max.properties.geo_latitude_A, max.properties.geo_longitude_A, max.properties.geo_latitude, max.properties.geo_longitude);
 		},
 
 		/**
@@ -250,7 +293,8 @@
 		 * @method initMap
 		 */
 		initMap : function () {
-			var mod = this;
+			var mod = this,
+				osm;
 
 			mod.map = new L.Map('map');
 			// create the tile layer with correct attribution
@@ -258,11 +302,11 @@
 			var osmAttrib='Map data Â© OpenStreetMap contributors';
 
 			// Original Layer
-			var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
+			osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
 
 			// Source of other layers: https://github.com/leaflet-extras/leaflet-providers
-			//var osm = L.tileLayer.provider('Stamen.Toner');
-			var osm = L.tileLayer.provider('Acetate');
+			//osm = L.tileLayer.provider('Stamen.Toner');
+			osm = L.tileLayer.provider('Acetate');
 
 			mod.map.addLayer(osm);
 
@@ -307,7 +351,7 @@
 			var factor = 2,
 				scale = Math.log(connections),
 				opacity = 0.3 + 0.1 * scale;
-console.log(opacity);
+
 			var polygon = L.polyline([
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
@@ -317,7 +361,19 @@ console.log(opacity);
 			}).addTo(map);
 		},
 
+		/**
+		 * Uses the moveabletype.latlong library to determine the distance in km between two points
+		 *
+		 * @method calculateDistance
+		 * @param lat1
+		 * @param lon1
+		 * @param lat2
+		 * @param lon2
+		 * @returns {Number}
+		 */
 		calculateDistance : function (lat1, lon1, lat2, lon2) {
+
+			// LatLon is from the moveabletype.latlong library
 			var p1 = new LatLon(lat1, lon1);
 			var p2 = new LatLon(lat2, lon2);
 			return p1.distanceTo(p2);          // in km

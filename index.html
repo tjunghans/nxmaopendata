@@ -37,10 +37,14 @@
 					<dd data-bind="text: numberOfEmployees"></dd>
 					<dt>Cluster (Wohnorte)</dt>
 					<dd data-bind="text: employeeClusters"></dd>
-					<dt>Cluster Distanz (km)</dt>
+					<dt>Cluster Distanz (Km)</dt>
 					<dd data-bind="text: clusterDistance"></dd>
 					<dt>Cluster-Work-Connections</dt>
 					<dd data-bind="text: clusterWorkConnections"></dd>
+					<dt>Kürzeste Distance (Luftweg Km)</dt>
+					<dd data-bind="text: minDistance"></dd>
+					<dt>Längste Distance (Luftweg Km)</dt>
+					<dd data-bind="text: maxDistance"></dd>
 				</dl>
 			</div>
 		</div>
@@ -60,7 +64,7 @@
 <script src='javascript/bootstrap.js'></script>
 
 <script type="text/template" id="tmpl-FullDataTable">
-<h2>Alle Daten</h2>
+<h2>Daten</h2>
 	<table>
 		<tr><td>Arbeitsort</td><td>Wohnort</td><td>Kompetenz</td>
 			<td>Lat</td>
