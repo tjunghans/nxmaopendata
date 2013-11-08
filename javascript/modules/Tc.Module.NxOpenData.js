@@ -361,6 +361,19 @@
 			}).addTo(map);
 		},
 
+		getNamicsColor : function (connections){
+			if(connections < 2){
+				//1
+				return "#63C2D8";
+			}else if(connections < 11){
+				//2-10
+				return "#0093C1";
+			}else{
+				//10+
+				return "#00539E";
+			}
+		},
+
 		/**
 		 * Uses the moveabletype.latlong library to determine the distance in km between two points
 		 *
