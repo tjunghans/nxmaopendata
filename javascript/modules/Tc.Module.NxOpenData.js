@@ -92,7 +92,7 @@
 				clusterWorkConnections : ko.observable()
 			};
 
-
+console.dir(mod.namicsOffices);
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
@@ -155,6 +155,13 @@
 				});
 
 
+			});
+
+			$ctx.on('click', '.widget-map-navigation button', function () {
+				var lat = $(this).data('lat');
+				var lon = $(this).data('lon');
+
+				mod.map.panTo(new L.LatLng(lat, lon));
 			});
 
 			/**
