@@ -15,3 +15,8 @@
 .mod-nx-open-data .large-2.columns {
   font-size: 0.8em;
 }
+.mod-nx-open-data .cluster-distance-selector label {
+  float: left;
+  margin-right: 1em;
+  margin-bottom: 0;
+}
