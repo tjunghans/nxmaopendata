@@ -27,9 +27,20 @@
 					<div class="widget-competence"></div>
 					<div class="widget-table"></div>
 
-				</div>
 			</div>
-			<div class="large-3 columns"></div>
+			<div class="large-3 columns">
+				<h2>Data</h2>
+				<dl>
+					<dt>Mitarbeiter</dt>
+					<dd data-bind="text: numberOfEmployees"></dd>
+					<dt>Cluster (Wohnorte)</dt>
+					<dd data-bind="text: employeeClusters"></dd>
+					<dt>Cluster Distanz (km)</dt>
+					<dd data-bind="text: clusterDistance"></dd>
+					<dt>Cluster-Work-Connections</dt>
+					<dd data-bind="text: clusterWorkConnections"></dd>
+				</dl>
+			</div>
 		</div>
 	</div>
 

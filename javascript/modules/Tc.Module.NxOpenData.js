@@ -40,6 +40,8 @@
 		 */
 		formattedClusterWorkConnections : [],
 
+		koModel : {},
+
 		/**
 		 * Hook function to do all of your module stuff.
 		 *
@@ -57,6 +59,13 @@
 			// Templates
 			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
 			mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
+
+			mod.koModel = {
+				clusterDistance : ko.observable(),
+				numberOfEmployees : ko.observable(),
+				employeeClusters : ko.observable(),
+				clusterWorkConnections : ko.observable()
+			};
 
 			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
@@ -80,11 +89,12 @@
 
 				mod.initMap();
 
-				// DEBUG START
-				console.log('Entries : ', data.length);
-				console.log('Clusters :', mod.clusters.length);
-				console.log('Total connections on map: ', mod.formattedClusterWorkConnections.length);
-				// DEBUG END
+				// Using knockout to fill data column on the right
+
+				mod.koModel.numberOfEmployees(data.length);
+				mod.koModel.employeeClusters(mod.clusters.length);
+				mod.koModel.clusterDistance(mod.clusterDistance);
+				mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
 
 				var groupByWorkplace = _.groupBy(mod.formattedClusterWorkConnections, function (connection) {
 					return connection.workPoint;
@@ -123,6 +133,8 @@
 				dataType : 'json',
 				success : function (data) {
 					mod.$ctx.trigger('dataavailable', [data.features]);
+
+					ko.applyBindings(mod.koModel, $ctx[0]);
 				}
 			});
 
