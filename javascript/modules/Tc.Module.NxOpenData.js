@@ -14,11 +14,11 @@
 	Tc.Module.NxOpenData = Tc.Module.extend({
 
 		/**
-		 * Distance in km
+		 * Distance in km. Reduce this value to increase precision and clusters.
 		 *
 		 * @type number
 		 */
-		clusterDistance : 0.1,
+		clusterDistance : 2,
 
 		/**
 		 *
@@ -27,6 +27,18 @@
 		clusters : [],
 
 		clusterWorkConnections : [],
+
+		/**
+		 * Holds a collection of objects
+		 * { workPoint : item[0].workPoint,
+		 	clusterCenter : item[0].cluster.getCenter(),
+		 	connections : item.length }
+
+		 * This is used to create the connections on the map
+		 *
+		 * @method formattedClusterWorkConnections
+		 */
+		formattedClusterWorkConnections : [],
 
 		/**
 		 * Hook function to do all of your module stuff.
@@ -39,52 +51,26 @@
 			var mod = this,
 				$ctx = mod.$ctx;
 
-			var url = '/resources/nxopendata.json';
+			// Url for JSONP call
+			var url = $ctx.data('url');
+
+			// Templates
 			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
 			mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
 
+			// Event handlers
 			$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
 			$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
 
 			$ctx.on('dataavailable', function (e, data) {
 
-				_.each(data, function (item, key, list) {
-
-					var itemLat = item.properties.geo_latitude,
-						itemLon = item.properties.geo_longitude,
-						itemPoint = new Lab.Point(itemLat, itemLon),
-						usedCluster = null;
-
-					// First check clusters
-					var cluster = mod.findClusterWithinDistance(itemPoint, mod.clusterDistance);
-
-					// If no cluster is found, a new one is created
-					if (cluster === null) {
-
-						var newCluster = new Lab.Cluster(itemPoint);
-
-						mod.clusters.push(newCluster);
-						usedCluster = newCluster;
-
-					} else {
-						cluster.addPoint(itemPoint);
-						usedCluster = cluster;
-					}
-
-					mod.clusterWorkConnections.push(
-						{
-							cluster : usedCluster,
-							workPoint : new Lab.Point(item.properties.geo_latitude_A, item.properties.geo_longitude_A)
-						}
-					);
-
-				});
+				_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
 
 				var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
 					return item.workPoint + ';' + item.cluster.getCenter();
 				});
 
-				var clusterWorkConnections = _.map(groupByWorkCoordinates, function(item, key){
+				mod.formattedClusterWorkConnections = _.map(groupByWorkCoordinates, function(item, key){
 					return {
 						workPoint : item[0].workPoint,
 						clusterCenter : item[0].cluster.getCenter(),
@@ -92,35 +78,37 @@
 					};
 				});
 
-				var map = new L.Map('map');
-				// create the tile layer with correct attribution
-				var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-				var osmAttrib='Map data Â© OpenStreetMap contributors';
-				var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
-
-				// start the map in South-East England
-				map.setView(new L.LatLng(47.3717,8.5359),8);
-				map.addLayer(osm);
-
+				mod.initMap();
 
 				// DEBUG START
 				console.log('Entries : ', data.length);
 				console.log('Clusters :', mod.clusters.length);
-				console.log('Total connections on map: ', clusterWorkConnections.length);
+				console.log('Total connections on map: ', mod.formattedClusterWorkConnections.length);
 				// DEBUG END
 
+				var groupByWorkplace = _.groupBy(mod.formattedClusterWorkConnections, function (connection) {
+					return connection.workPoint;
+				});
+
+				console.dir(mod.formattedClusterWorkConnections);
+
+				_.map(mod.formattedClusterWorkConnections, function (item, key) {
+
+				});
+
 				// 1. Add connections
-				_.each(clusterWorkConnections, function (connection) {
-					mod.addClusterWorkConnection(map, connection.clusterCenter, connection.workPoint, connection.connections);
+				_.each(mod.formattedClusterWorkConnections, function (connection) {
+					mod.addClusterWorkConnection(mod.map, connection.clusterCenter, connection.workPoint, connection.connections);
 				});
 
 				// 2. Cluster circles
 				_.each(mod.clusters, function (cluster) {
-					mod.addClusterLocation(map, cluster.getCenter(), cluster.getPoints().length)
+					mod.addClusterLocation(mod.map, cluster.getCenter(), cluster.getPoints().length)
 				});
 
-				_.each(clusterWorkConnections, function (connection) {
-					mod.addWorkLocation(map, connection.workPoint)
+				// 3. Add Namics locations
+				_.each(mod.formattedClusterWorkConnections, function (connection) {
+					mod.addWorkLocation(mod.map, connection.workPoint)
 				});
 
 
@@ -139,6 +127,70 @@
 			});
 
 			callback();
+		},
+
+		/**
+		 * Creates the clusters (mod.clusters) and then connections between work and clusters (mod.clusterWorkConnections)
+		 * This method is called in a loop.
+		 *
+		 * @method createClusterAndWorkConnections
+		 * @param {object} dataItem, a row from the json response
+		 * @return {object} with two properties, clusters and clusterWorkConnections
+		 */
+		createClusterAndWorkConnections : function (dataItem) {
+			var mod = this,
+				itemLat = dataItem.properties.geo_latitude,
+				itemLon = dataItem.properties.geo_longitude,
+
+				itemPoint = new Lab.Point(itemLat, itemLon),
+				usedCluster = null;
+
+			// First check clusters
+			var cluster = mod.findClusterWithinDistance(itemPoint, mod.clusterDistance);
+
+			// If no cluster is found, a new one is created
+			if (cluster === null) {
+
+				var newCluster = new Lab.Cluster(itemPoint);
+
+				mod.clusters.push(newCluster);
+				usedCluster = newCluster;
+
+			} else {
+				cluster.addPoint(itemPoint);
+				usedCluster = cluster;
+			}
+
+			mod.clusterWorkConnections.push(
+				{
+					cluster : usedCluster,
+					workPoint : new Lab.Point(dataItem.properties.geo_latitude_A, dataItem.properties.geo_longitude_A)
+				}
+			);
+
+			return {
+				clusters : mod.clusters,
+				clusterWorkConnections : mod.clusterWorkConnections
+			}
+		},
+
+		/**
+		 * Initialises leaflet map
+		 *
+		 * @method initMap
+		 */
+		initMap : function () {
+			var mod = this;
+
+			mod.map = new L.Map('map');
+			// create the tile layer with correct attribution
+			var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+			var osmAttrib='Map data Â© OpenStreetMap contributors';
+			var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 18, attribution: osmAttrib});
+
+			// start the map in South-East England
+			mod.map.setView(new L.LatLng(47.3717,8.5359),8);
+			mod.map.addLayer(osm);
 		},
 
 		addClusterLocation : function (map, point, clusterSize) {
@@ -173,26 +225,6 @@
 			var p1 = new LatLon(lat1, lon1);
 			var p2 = new LatLon(lat2, lon2);
 			return p1.distanceTo(p2);          // in km
-		},
-
-		/**
-		 * @param {number} lat
-		 * @param {number} lon
-		 * @param {object} data as received (json)
-		 * @param {number} distance in km
-		 */
-		getLatLonWithinDistance : function (lat, lon, data, distance) {
-			var mod = this,
-				latLonWithinDistance = [];
-
-			_.each(data, function (item, key, list) {
-
-				var itemLat = item.properties.geo_latitude,
-					itemLon = item.properties.geo_longitude;
-
-				//mod.calculateDistance(lat, lon, itemLat, itemLon), distance);
-			});
-
 		},
 
 		/**
