@@ -274,7 +274,7 @@ console.dir(mod.namicsOffices);
 		},
 
 		addClusterWorkConnection : function (map, clusterCenter, workPoint, connections) {
-			var polygon = L.polygon([
+			var polygon = L.polyline([
 				[clusterCenter.lat, clusterCenter.lon],
 				[workPoint.lat, workPoint.lon]
 			], {
