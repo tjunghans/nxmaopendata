@@ -6,6 +6,9 @@
   overflow: hidden;
   width: 100%;
 }
+.footer {
+  font-size: 0.8em;
+}
 .mod-nx-open-data .widget-map {
   height: 800px;
 }

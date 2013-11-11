@@ -18,6 +18,7 @@
 <div class="page">
 	<div class="row">
 		<h1>Open Data. Lab. Namics.</h1>
+		<p>Distanz zwischen Arbeitsort und Wohnort der Namics-Mitarbeiter. Die Adressen der Namics-Standorte sind genau erfasst. Für die Platzierung der Wohnorte werden nur Ort und Postleitzahl verwendetet (nicht Strasse und Hausnummer).</p>
 	</div>
 	<div class="mod mod-nx-open-data" data-url="resources/nxopendata.json">
 		<div class="row">
@@ -25,6 +26,7 @@
 
 
 				<fieldset class="cluster-distance-selector">
+					<legend>Cluster Grösse</legend>
 					<label><input type="radio" name="clusterDistance" value="0.5" data-bind="checked: radioSelectedOptionValue" /> 500m</label>
 					<label><input type="radio" name="clusterDistance" value="1" data-bind="checked: radioSelectedOptionValue" /> 1km</label>
 					<label><input type="radio" name="clusterDistance" value="2" data-bind="checked: radioSelectedOptionValue" /> 2km</label>
@@ -62,6 +64,14 @@
 					<dd data-bind="text: maxDistance"></dd>
 				</dl>
 			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="large-12 columns footer">
+			<p><strong>Lab Projekt 2013. Team Thomas.</strong></p>
+			<p><strong>Andrea Bettich. Christoph Bollhalder. Tobias Hausmann. Thomas Junghans. Stefan Maurer. Stefanie Klekamp. Marcel Tanner. Markus Tressl.</strong></p>
+
 		</div>
 	</div>
 
