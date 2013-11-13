@@ -21,20 +21,7 @@
 		<p>Distanz zwischen Arbeitsort und Wohnort der Namics-Mitarbeiter. Die Adressen der Namics-Standorte sind genau erfasst. Für die Platzierung der Wohnorte werden nur Ort und Postleitzahl verwendetet (nicht Strasse und Hausnummer).</p>
 	</div>
 	<div class="mod mod-nx-open-data" data-namics-ppl-locations="resources/nxopendata.json" data-namics-offices="/resources/namics-offices.json">
-		<div class="row">
-			<div class="large-12 columns">
 
-
-				<fieldset class="cluster-distance-selector">
-					<legend>Cluster Grösse</legend>
-					<label><input type="radio" name="clusterDistance" value="0.5" data-bind="checked: radioSelectedOptionValue" /> 500m</label>
-					<label><input type="radio" name="clusterDistance" value="1" data-bind="checked: radioSelectedOptionValue" /> 1km</label>
-					<label><input type="radio" name="clusterDistance" value="2" data-bind="checked: radioSelectedOptionValue" /> 2km</label>
-					<label><input type="radio" name="clusterDistance" value="5" data-bind="checked: radioSelectedOptionValue" /> 5km</label>
-					<label><input type="radio" name="clusterDistance" value="10" data-bind="checked: radioSelectedOptionValue" /> 10km</label>
-				</fieldset>
-			</div>
-		</div>
 		<div class="row">
 			<div class="large-10 columns">
 					<div class="widget-map-navigation">
@@ -48,14 +35,24 @@
 
 			</div>
 			<div class="large-2 columns">
+				<fieldset class="cluster-distance-selector">
+					<legend>Cluster Grösse</legend>
+					<label><input type="radio" name="clusterDistance" value="0.5" data-bind="checked: radioSelectedOptionValue" /> 500m</label>
+					<label><input type="radio" name="clusterDistance" value="1" data-bind="checked: radioSelectedOptionValue" /> 1km</label>
+					<label><input type="radio" name="clusterDistance" value="2" data-bind="checked: radioSelectedOptionValue" /> 2km</label>
+					<label><input type="radio" name="clusterDistance" value="5" data-bind="checked: radioSelectedOptionValue" /> 5km</label>
+					<label><input type="radio" name="clusterDistance" value="10" data-bind="checked: radioSelectedOptionValue" /> 10km</label>
+				</fieldset>
+				<fieldset>
+					<legend>Parameter</legend>
+					<label><input type="checkbox" data-bind="checked: showAverageDistance" /> Durchsch. Wohndistanz</label>
+				</fieldset>
 
 				<dl>
 					<dt>Mitarbeiter</dt>
 					<dd data-bind="text: numberOfEmployees"></dd>
 					<dt>Cluster (Wohnorte)</dt>
 					<dd data-bind="text: employeeClusters"></dd>
-					<dt>Cluster Distanz (Km)</dt>
-					<dd data-bind="text: clusterDistance"></dd>
 					<dt>Cluster-Work-Connections</dt>
 					<dd data-bind="text: clusterWorkConnections"></dd>
 					<dt>Kürzeste Distance (Luftweg Km)</dt>

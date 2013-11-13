@@ -53,6 +53,8 @@
 
 		namicsOffices : {},
 
+		averageDistanceLayers : [],
+
 		/**
 		 * Hook function to do all of your module stuff.
 		 *
@@ -80,12 +82,21 @@
 				clusterWorkConnections : ko.observable(),
 				minDistance : ko.observable(),
 				maxDistance : ko.observable(),
-				radioSelectedOptionValue : ko.observable(mod.clusterDistance)
+				radioSelectedOptionValue : ko.observable(mod.clusterDistance),
+				showAverageDistance : ko.observable()
 			};
 
 			mod.koModel.radioSelectedOptionValue.subscribe(function (value) {
 				mod.clusterDistance = parseFloat(value);
 				mod.resetMap();
+			});
+
+			mod.koModel.showAverageDistance.subscribe(function (value) {
+				 if (value === true) {
+					 mod.showAverageDistanceLayer();
+				 } else {
+					 mod.hideAverageDistanceLayer();
+				 }
 			});
 
 			// Event handlers
@@ -116,10 +127,11 @@
 						totalDistance += mod.calculateDistance(point.lat, point.lon, lat, lon);
 					});
 
-					var totalDistanceRounded = Math.round(totalDistance * 100) / 100,
-						averageDistanceRounded = Math.round(totalDistance / workers * 100) / 100;
-
-					console.log(mod.namicsOffices[key].name, totalDistanceRounded, averageDistanceRounded);
+					// Extend the original data (TODO: Refactor since we shouldn't extend what isn't ours)
+					$.extend(workPlace, {
+						totalDistanceRounded : Math.round(totalDistance * 100) / 100,
+						averageDistanceRounded : Math.round(totalDistance / workers * 100) / 100
+					});
 
 				});
 
@@ -128,9 +140,14 @@
 
 					return {
 						workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
-						employees : value.length
+						employees : value.length,
+						totalDistanceRounded : value.totalDistanceRounded,
+						averageDistanceRounded : value.averageDistanceRounded
+
 					}
 				});
+
+				mod.addAverageDistanceLayers();
 
 				mod.koModel.numberOfEmployees(mod.peopleLocationData.length);
 				mod.minDistance = mod.getMinDistance(mod.peopleLocationData);
@@ -173,6 +190,27 @@
 			ko.applyBindings(mod.koModel, $ctx[0]);
 
 			callback();
+		},
+
+		addAverageDistanceLayers : function () {
+			var mod = this;
+
+			_.each(mod.workPlaces, function (workPlace) {
+				var lat = workPlace.workPlacePoint.lat,
+					lon = workPlace.workPlacePoint.lon;
+
+				var circle = new L.circle(new L.LatLng(lat, lon), workPlace.averageDistanceRounded * 1000, {
+					color: '#f00',
+					opacity: 0.3,
+					weight: 5,
+					fill : false,
+					stroke: true
+				});
+
+				mod.averageDistanceLayers.push(circle);
+
+				circle.bindPopup('Durschnittliche Distanz in Km (Luftweg): ' + workPlace.averageDistanceRounded);
+			});
 		},
 
 		prepareOfficeLocationData : function (officeLocationData) {
@@ -267,6 +305,24 @@
 
 			// 3.1
 			mod.workLocationLayer.addTo(mod.map);
+
+		},
+
+		showAverageDistanceLayer : function () {
+			var mod = this;
+
+			_.each(mod.averageDistanceLayers, function (circle) {
+				mod.averageDistanceLayer.addLayer(circle);
+			});
+
+			mod.averageDistanceLayer.addTo(mod.map);
+
+		},
+
+		hideAverageDistanceLayer : function () {
+			var mod = this;
+
+			mod.averageDistanceLayer.clearLayers()
 		},
 
 
@@ -376,6 +432,7 @@
 			mod.clusterLocationLayer = new L.layerGroup();
 			mod.clusterWorkConnectionLayer = new L.layerGroup();
 			mod.workLocationLayer = new L.layerGroup();
+			mod.averageDistanceLayer = new L.layerGroup();
 
 			mod.map.setView(new L.LatLng(mod.mapCenter.lat, mod.mapCenter.lon),12);
 		},
