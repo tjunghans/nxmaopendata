@@ -35,6 +35,8 @@
 
 		map : null,
 
+		peopleLocationData : null,
+
 		/**
 		 * Holds a collection of objects
 		 * { workPoint : item[0].workPoint,
@@ -49,35 +51,7 @@
 
 		koModel : {},
 
-		namicsOffices : {
-			'47.3647388,8.5312022' : {
-				point : new Lab.Point(47.3647388,8.5312022),
-				name : 'Zürich'
-			},
-
-
-			'48.1182,11.5838' : {
-				point : new Lab.Point(48.1182,11.5838),
-				name : 'München'
-
-			},
-
-			'50.0982839,8.6819118' : {
-				point : new Lab.Point(50.0982839,8.6819118),
-				name : 'Frankfurt'
-			},
-
-			'53.54516,9.9879' : {
-				point : new Lab.Point(53.54516,9.9879),
-				name : 'Hamburg'
-			},
-
-			'47.4199015,9.370606' : {
-				point : new Lab.Point(47.4199015,9.370606),
-				name : 'St. Gallen'
-			}
-
-		},
+		namicsOffices : {},
 
 		/**
 		 * Hook function to do all of your module stuff.
@@ -91,7 +65,8 @@
 				$ctx = mod.$ctx;
 
 			// Url for JSONP call
-			var url = $ctx.data('url');
+			var urlNamicsPeopleLocations = $ctx.data('namics-ppl-locations'),
+				urlNamicsOffices = $ctx.data('namics-offices');
 
 			// Templates
 			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
@@ -113,24 +88,69 @@
 				mod.resetMap();
 			});
 
-			var namicsOfficesFormattedForTemplate = _.map(mod.namicsOffices, function (location) {
-				return {
-					point : location.point,
-					name : location.name
-				}
-			});
-
-			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(namicsOfficesFormattedForTemplate));
-
 			// Event handlers
-			//$ctx.on('dataavailable', $.proxy(mod.generateFullTable, mod));
+			//$ctx.on('dataready', $.proxy(mod.generateFullTable, mod));
 
 			// Displays competency count. Currently commented out, because no data is available
-			//$ctx.on('dataavailable', $.proxy(mod.generateCompetenceTable, mod));
+			//$ctx.on('dataready', $.proxy(mod.generateCompetenceTable, mod));
 
-			$ctx.on('dataavailable', function (e, data) {
-				mod.data = data;
-				mod.initMapWidget(data);
+			$ctx.on('dataready', function () {
+				/**
+				 * Holds properties for each work location. The key is made up of the latitude and longitude eg. ["47.3647388,8.5312022"].
+				 * Each work location objects holds an array of all
+				 * @type {Object}
+				 */
+				mod.workPlaceMappings = _.groupBy(mod.peopleLocationData, function (item) {
+					return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
+				});
+
+				_.each(mod.workPlaceMappings, function (workPlace, key) {
+					var workers = workPlace.length,
+						point = mod.namicsOffices[key].point,
+						totalDistance = 0;
+
+					_.each(workPlace, function (employee) {
+						var lat = employee.properties.geo_latitude,
+							lon = employee.properties.geo_longitude;
+
+						totalDistance += mod.calculateDistance(point.lat, point.lon, lat, lon);
+					});
+
+					var totalDistanceRounded = Math.round(totalDistance * 100) / 100,
+						averageDistanceRounded = Math.round(totalDistance / workers * 100) / 100;
+
+					console.log(mod.namicsOffices[key].name, totalDistanceRounded, averageDistanceRounded);
+
+				});
+
+				mod.workPlaces = _.map(mod.workPlaceMappings, function (value, key) {
+					var latLon = key.split(',');
+
+					return {
+						workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
+						employees : value.length
+					}
+				});
+
+				mod.koModel.numberOfEmployees(mod.peopleLocationData.length);
+				mod.minDistance = mod.getMinDistance(mod.peopleLocationData);
+				mod.maxDistance = mod.getMaxDistance(mod.peopleLocationData);
+				mod.koModel.minDistance(mod.minDistance);
+				mod.koModel.maxDistance(mod.maxDistance);
+
+
+				mod.initMapWidget();
+			});
+
+			$ctx.on('dataavailable', function (e, peopleLocationData, officeLocationData) {
+
+				// Prepare data
+				mod.peopleLocationData = peopleLocationData;
+				mod.prepareOfficeLocationData(officeLocationData);
+
+				// All data is ready for usage
+				$ctx.trigger('dataready');
+
 			});
 
 			$ctx.on('click', '.widget-map-navigation button', function () {
@@ -140,19 +160,14 @@
 				mod.map.panTo(new L.LatLng(lat, lon));
 			});
 
+			$.when(
+				$.getJSON(urlNamicsPeopleLocations),
+				$.getJSON(urlNamicsOffices)
+			).done(function (a, b) {
+				var peopleLocationData = a[0],
+					officeLocationData = b[0];
 
-			/**
-			 * For each latlng iterate through existing clusters (get their center)
-			 */
-
-			$.ajax({
-				url : url,
-				dataType : 'json',
-				success : function (data) {
-					mod.$ctx.trigger('dataavailable', [data.features]);
-
-
-				}
+				mod.$ctx.trigger('dataavailable', [peopleLocationData.features, officeLocationData]);
 			});
 
 			ko.applyBindings(mod.koModel, $ctx[0]);
@@ -160,19 +175,34 @@
 			callback();
 		},
 
+		prepareOfficeLocationData : function (officeLocationData) {
+			var mod = this,
+				$ctx = mod.$ctx;
+
+			_.each(officeLocationData, function (item) {
+				var location = new Lab.OfficeLocation(item.name, item.point[0], item.point[1]);
+				mod.namicsOffices[location.getId()] = {
+					name : location.getName(),
+					point : location.getPoint()
+				}
+			});
+
+			var namicsOfficesFormattedForTemplate = _.map(mod.namicsOffices, mod.namicsOfficeMapper);
+
+			$ctx.find('.widget-map-navigation').html(mod.tmplOfficeNavigation(namicsOfficesFormattedForTemplate));
+		},
+
+		namicsOfficeMapper : function (location) {
+			return {
+				point : location.point,
+				name : location.name
+			}
+		},
+
 		resetMap : function () {
 			var mod = this,
 				$ctx = mod.$ctx;
 
-			// TODO: Refactor
-/*
-			mod.map.remove(); // leafletjs method
-			mod.map = null;
-
-			$('#map').remove();
-
-			$ctx.find('.widget-map').html('<div id="map"></div>');
-*/
 			mod.clusterWorkConnectionLayer.clearLayers();
 
 			mod.clusterLocationLayer.clearLayers();
@@ -182,28 +212,15 @@
 			mod.clusters = [];
 			mod.clusterWorkConnections = [];
 
-			mod.initMapWidget(mod.data);
+			mod.initMapWidget();
 		},
 
-		initMapWidget : function (data) {
+		initMapWidget : function () {
 			var mod = this,
-				$ctx = mod.$ctx;
+				$ctx = mod.$ctx,
+				data = mod.peopleLocationData;
 
 			_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
-
-
-			mod.workPlaceMappings = _.groupBy(data, function (item) {
-				return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
-			});
-
-			mod.workPlaces = _.map(mod.workPlaceMappings, function (value, key) {
-				var latLon = key.split(',');
-
-				return {
-					workPlacePoint : new Lab.Point(latLon[0], latLon[1]),
-					employees : value.length
-				}
-			});
 
 			var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
 				return item.workPoint + ';' + item.cluster.getCenter();
@@ -217,21 +234,15 @@
 				};
 			});
 
-			mod.minDistance = mod.getMinDistance(data);
-
-			mod.maxDistance = mod.getMaxDistance(data);
-
 			if (mod.map === null) {
 				mod.initMap(); // TODO: Refactor
 			}
 
 			// Using knockout to fill data column on the right
-			mod.koModel.numberOfEmployees(data.length);
 			mod.koModel.employeeClusters(mod.clusters.length);
 			mod.koModel.clusterDistance(mod.clusterDistance);
 			mod.koModel.clusterWorkConnections(mod.formattedClusterWorkConnections.length);
-			mod.koModel.minDistance(mod.minDistance);
-			mod.koModel.maxDistance(mod.maxDistance);
+
 
 			// 1. Add connections
 			_.each(mod.formattedClusterWorkConnections, function (connection) {
@@ -429,13 +440,13 @@
 		},
 
 		getNamicsColor : function (connections){
-			if(connections < 2){
+			if (connections < 2) {
 				//1
 				return "#63C2D8";
-			}else if(connections < 11){
+			} else if(connections < 11){
 				//2-10
 				return "#0093C1";
-			}else{
+			} else {
 				//10+
 				return "#00539E";
 			}
@@ -454,9 +465,10 @@
 		calculateDistance : function (lat1, lon1, lat2, lon2) {
 
 			// LatLon is from the moveabletype.latlong library
-			var p1 = new LatLon(lat1, lon1);
-			var p2 = new LatLon(lat2, lon2);
-			return p1.distanceTo(p2);          // in km
+			var p1 = new LatLon(lat1, lon1),
+				p2 = new LatLon(lat2, lon2);
+
+			return parseFloat(p1.distanceTo(p2));          // in km
 		},
 
 
