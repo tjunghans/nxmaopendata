@@ -177,6 +177,14 @@
 				mod.map.panTo(new L.LatLng(lat, lon));
 			});
 
+			$ctx.on('click', '.show-all', function () {
+				var bounds = _.map(mod.namicsOffices, function (item) {
+					return [item.point.lat, item.point.lon];
+				});
+
+				mod.map.fitBounds(bounds);
+			});
+
 			$.when(
 				$.getJSON(urlNamicsPeopleLocations),
 				$.getJSON(urlNamicsOffices)

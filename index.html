@@ -24,6 +24,7 @@
 
 		<div class="row">
 			<div class="large-10 columns">
+				<button class="small button show-all">Alle anzeigen</button>
 					<div class="widget-map-navigation">
 
 					</div>
@@ -110,9 +111,7 @@
 <script type="text/template" id="tmpl-OfficeNavigation">
 	<ul class="button-group">
 		{{~it :value:index}}
-
 		<li><button class="small button" data-lat="{{=value.point.lat}}" data-lon="{{=value.point.lon}}">{{=value.name}}</button></li>
-
 		{{~}}
 	</ul>
 </script>
