@@ -1,4 +1,9 @@
 (function (window, undefined) {
+	'use strict';
+
+	namespace('Lab');
+
+	var Lab = window.Lab;
 
 	/**
 	 *
@@ -21,6 +26,5 @@
 		}
 	};
 
-	window.Lab = window.Lab || {};
-	window.Lab.Point = Point;
+	Lab.Point = Point;
 }(window));

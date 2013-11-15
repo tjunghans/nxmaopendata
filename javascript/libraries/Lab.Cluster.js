@@ -1,4 +1,11 @@
 (function (window, undefined) {
+
+	'use strict';
+
+	namespace('Lab');
+
+	var Lab = window.Lab;
+
 	function Cluster(point) {
 		this.points = [];
 		this.center = null;
@@ -49,6 +56,5 @@
 		}
 	};
 
-	window.Lab = window.Lab || {};
-	window.Lab.Cluster = Cluster;
+	Lab.Cluster = Cluster;
 }(window));
