@@ -41,6 +41,9 @@
 
 		getSize : function () {
 			return this.collection.length;
+		},
+		getMaximumDistanceToWork : function () {
+
 		}
 
 	};

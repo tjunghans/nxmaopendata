@@ -361,7 +361,7 @@
 		getMaxDistance : function (data) {
 			var mod = this;
 
-			// Get min distance of all
+			// Get maximum distance of all
 			var max = _.max(data, function (item) {
 
 				var props = item.properties,
@@ -370,6 +370,7 @@
 				return parseFloat(distance);
 			});
 
+			// TODO: Refactor!!!
 			return mod.calculateDistance(max.properties.geo_latitude_A, max.properties.geo_longitude_A, max.properties.geo_latitude, max.properties.geo_longitude);
 		},
 
