@@ -11,8 +11,8 @@
 	<!--[if lte IE 8]>
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
 	<![endif]-->
-	<script src="javascript/vendor/leaflet.js"></script>
-	<script src="javascript/vendor/leaflet-providers.js"></script>
+	<script src="src/javascript/vendor/leaflet.js"></script>
+	<script src="src/javascript/vendor/leaflet-providers.js"></script>
 </head>
 <body>
 <div class="page">
@@ -20,11 +20,11 @@
 		<h1>Open Data. Lab. Namics.</h1>
 		<p>Distanz zwischen Arbeitsort und Wohnort der Namics-Mitarbeiter. Die Adressen der Namics-Standorte sind genau erfasst. Für die Platzierung der Wohnorte werden nur Ort und Postleitzahl verwendetet (nicht Strasse und Hausnummer).</p>
 	</div>
-	<div class="mod mod-nx-open-data" data-namics-ppl-locations="resources/nxopendata.json" data-namics-offices="/resources/namics-offices.json">
+	<div class="mod mod-nx-open-data" data-namics-ppl-locations="resources/nxopendata.json" data-namics-offices="resources/namics-offices.json">
 
 		<div class="row">
 			<div class="large-10 columns">
-				<button class="small button show-all">Alle anzeigen</button>
+				<button class="small button show-all">Alle Standorte anzeigen</button>
 					<div class="widget-map-navigation">
 
 					</div>
@@ -75,17 +75,7 @@
 
 </div>
 
-<script src="javascript/vendor/jquery.js"></script>
-<script src="javascript/vendor/underscore-min.js"></script>
-<script src="javascript/vendor/doT.min.js"></script>
-<script src="javascript/vendor/moveabletype.latlong.js"></script>
-<script src='javascript/vendor/terrific-2.0.1.min.js'></script>
-<script src='javascript/vendor/knockout-2.3.0.js'></script>
-<script src='javascript/libraries/Lab.Cluster.js'></script>
-<script src='javascript/libraries/Lab.Point.js'></script>
-<script src='javascript/libraries/Lab.OfficeLocation.js'></script>
-<script src='javascript/modules/Tc.Module.NxOpenData.js'></script>
-<script src='javascript/bootstrap.js'></script>
+<script src="build/NamicsHomeWorkDistances.min.js"></script>
 
 <script type="text/template" id="tmpl-FullDataTable">
 <h2>Daten</h2>

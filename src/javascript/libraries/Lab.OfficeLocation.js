@@ -1,5 +1,8 @@
 (function($, window, undefined) {
-	"use strict";
+
+	'use strict';
+
+	namespace('Lab');
 
 	var Lab = window.Lab;
 
