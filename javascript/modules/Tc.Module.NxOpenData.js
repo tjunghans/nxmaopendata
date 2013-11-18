@@ -149,7 +149,7 @@
 
 				mod.addAverageDistanceLayers();
 
-				mod.koModel.numberOfEmployees(mod.peopleLocationCollection.length);
+				mod.koModel.numberOfEmployees(mod.employeeCollection.getSize());
 				mod.minDistance = mod.getMinDistance(mod.peopleLocationData);
 				mod.maxDistance = mod.getMaxDistance(mod.peopleLocationData);
 				mod.koModel.minDistance(mod.minDistance);
@@ -165,13 +165,11 @@
 				mod.peopleLocationData = peopleLocationData;
 				mod.prepareOfficeLocationData(officeLocationData);
 
-				mod.peopleLocationCollection = [];
-				mod.peopleLocationCollection = _.map(peopleLocationData, function (item) {
-					return new Lab.Employee(item.properties);
-				});
+				console.log(peopleLocationData[0]);
 
-				console.log(mod.peopleLocationCollection);
+				mod.employeeCollection = new Lab.EmployeeCollection(peopleLocationData);
 
+				console.log(mod.employeeCollection.getCollection()[0]);
 
 				// All data is ready for usage
 				$ctx.trigger('dataready');
