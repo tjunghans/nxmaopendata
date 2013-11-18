@@ -150,11 +150,8 @@
 				mod.addAverageDistanceLayers();
 
 				mod.koModel.numberOfEmployees(mod.employeeCollection.getSize());
-				mod.minDistance = mod.getMinDistance(mod.peopleLocationData);
-				mod.maxDistance = mod.getMaxDistance(mod.peopleLocationData);
-				mod.koModel.minDistance(mod.minDistance);
-				mod.koModel.maxDistance(mod.maxDistance);
-
+				mod.koModel.minDistance(mod.employeeCollection.getMinDistanceToWork());
+				mod.koModel.maxDistance(mod.employeeCollection.getMaxDistanceToWork());
 
 				mod.initMapWidget();
 			});
@@ -165,11 +162,8 @@
 				mod.peopleLocationData = peopleLocationData;
 				mod.prepareOfficeLocationData(officeLocationData);
 
-				//console.log(peopleLocationData[0]);
-
 				mod.employeeCollection = new Lab.EmployeeCollection(peopleLocationData);
 
-				//console.log(mod.employeeCollection.getCollection()[0]);
 
 				// All data is ready for usage
 				$ctx.trigger('dataready');
@@ -340,40 +334,6 @@
 
 			mod.averageDistanceLayer.clearLayers()
 		},
-
-
-		getMinDistance : function (data) {
-			var mod = this;
-
-			// Get min distance of all
-			var min = _.min(data, function (item) {
-
-				var props = item.properties,
-					distance = mod.calculateDistance(props.geo_latitude_A, props.geo_longitude_A, props.geo_latitude, props.geo_longitude);
-
-				return parseFloat(distance);
-			});
-
-			return mod.calculateDistance(min.properties.geo_latitude_A, min.properties.geo_longitude_A, min.properties.geo_latitude, min.properties.geo_longitude);
-		},
-
-
-		getMaxDistance : function (data) {
-			var mod = this;
-
-			// Get maximum distance of all
-			var max = _.max(data, function (item) {
-
-				var props = item.properties,
-					distance = mod.calculateDistance(props.geo_latitude_A, props.geo_longitude_A, props.geo_latitude, props.geo_longitude);
-
-				return parseFloat(distance);
-			});
-
-			// TODO: Refactor!!!
-			return mod.calculateDistance(max.properties.geo_latitude_A, max.properties.geo_longitude_A, max.properties.geo_latitude, max.properties.geo_longitude);
-		},
-
 
 		/**
 		 * Creates the clusters (mod.clusters) and then connections between work and clusters (mod.clusterWorkConnections)

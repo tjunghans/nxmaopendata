@@ -46,10 +46,20 @@ module.exports = function(grunt) {
 				dest: 'build/source.min.js'
 
 			}
+		},
+
+		watch: {
+			scripts: {
+				files: ['src/javascript/**/*.js'],
+				tasks: ['concat:source_vendor', 'uglify', 'concat:distribution'],
+				options: {
+					spawn: false
+				}
+			}
 		}
 	});
 
-
+	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.registerTask('default', ['concat:source_vendor', 'uglify', 'concat:distribution']);

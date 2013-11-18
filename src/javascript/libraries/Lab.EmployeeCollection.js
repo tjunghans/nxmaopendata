@@ -40,8 +40,25 @@
 		getSize : function () {
 			return this.collection.length;
 		},
-		getMaximumDistanceToWork : function () {
 
+		getMaxDistanceToWork : function () {
+			var collection = this.getCollection(),
+				item =  _.max(collection, function (item) {
+
+					return parseFloat(item.getDistanceToWork());
+				});
+
+			return item.getDistanceToWork();
+		},
+
+		getMinDistanceToWork : function () {
+			var collection = this.getCollection(),
+				item =  _.min(collection, function (item) {
+
+					return parseFloat(item.getDistanceToWork());
+				});
+
+			return item.getDistanceToWork();
 		}
 
 	};
