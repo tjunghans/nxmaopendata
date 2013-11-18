@@ -4,8 +4,7 @@
 
 	namespace('Lab');
 
-	var Lab = window.Lab,
-		Point = Lab.Point;
+	var Lab = window.Lab;
 
 	function OfficeLocation(name, x, y) {
 		this.init(name, x, y);
@@ -15,7 +14,7 @@
 		constructor : OfficeLocation,
 		init : function (name, x, y) {
 			this.name = name;
-			this.point = new Point(x, y);
+			this.point = new Lab.Point(x, y);
 			this.id = x + ',' + y;
 		},
 		getName : function () {

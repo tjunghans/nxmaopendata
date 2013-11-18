@@ -165,11 +165,11 @@
 				mod.peopleLocationData = peopleLocationData;
 				mod.prepareOfficeLocationData(officeLocationData);
 
-				console.log(peopleLocationData[0]);
+				//console.log(peopleLocationData[0]);
 
 				mod.employeeCollection = new Lab.EmployeeCollection(peopleLocationData);
 
-				console.log(mod.employeeCollection.getCollection()[0]);
+				//console.log(mod.employeeCollection.getCollection()[0]);
 
 				// All data is ready for usage
 				$ctx.trigger('dataready');

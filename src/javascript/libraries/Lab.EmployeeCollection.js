@@ -4,8 +4,6 @@
 
 	namespace('Lab');
 
-	var Employee = Lab.Employee;
-
 	function EmployeeCollection(json) {
 
 		/**
@@ -30,7 +28,7 @@
 			this.json = json;
 
 			for (var i = 0, ii = json.length; i < ii; i++) {
-				this.collection.push(new Employee(json[i].properties));
+				this.collection.push(new Lab.Employee(json[i].properties));
 			}
 
 		},

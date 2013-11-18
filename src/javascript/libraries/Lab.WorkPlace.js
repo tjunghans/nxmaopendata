@@ -7,8 +7,8 @@
 
 	}
 
-	Employee.prototype = {
-		constructor : Employee,
+	WorkPlace.prototype = {
+		constructor : WorkPlace,
 		init : function (json) {
 
 
