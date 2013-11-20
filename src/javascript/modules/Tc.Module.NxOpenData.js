@@ -35,8 +35,6 @@
 
 		map : null,
 
-		peopleLocationData : null,
-
 		/**
 		 * Holds a collection of objects
 		 * { workPoint : item[0].workPoint,
@@ -71,8 +69,8 @@
 				urlNamicsOffices = $ctx.data('namics-offices');
 
 			// Templates
-			mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
-			mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
+			//mod.tmplfullDataTable = doT.template($('#tmpl-FullDataTable').html());
+			//mod.tmplByCompetence = doT.template($('#tmpl-ByCompetence').html());
 			mod.tmplOfficeNavigation = doT.template($('#tmpl-OfficeNavigation').html());
 
 			mod.koModel = {
@@ -111,8 +109,8 @@
 				 * Each work location objects holds an array of all
 				 * @type {Object}
 				 */
-				mod.workPlaceMappings = _.groupBy(mod.peopleLocationData, function (item) {
-					return item.properties.geo_latitude_A + ',' + item.properties.geo_longitude_A;
+				mod.workPlaceMappings = _.groupBy(mod.employeeCollection.getCollection(), function (item) {
+					return item.workGeo;
 				});
 
 				_.each(mod.workPlaceMappings, function (workPlace, key) {
@@ -121,8 +119,8 @@
 						totalDistance = 0;
 
 					_.each(workPlace, function (employee) {
-						var lat = employee.properties.geo_latitude,
-							lon = employee.properties.geo_longitude;
+						var lat = employee.geo.lat,
+							lon = employee.geo.lon;
 
 						totalDistance += mod.calculateDistance(point.lat, point.lon, lat, lon);
 					});
@@ -132,6 +130,7 @@
 						totalDistanceRounded : Math.round(totalDistance * 100) / 100,
 						averageDistanceRounded : Math.round(totalDistance / workers * 100) / 100
 					});
+
 
 				});
 
@@ -159,11 +158,13 @@
 			$ctx.on('dataavailable', function (e, peopleLocationData, officeLocationData) {
 
 				// Prepare data
-				mod.peopleLocationData = peopleLocationData;
 				mod.prepareOfficeLocationData(officeLocationData);
 
-				mod.employeeCollection = new Lab.EmployeeCollection(peopleLocationData);
+				mod.officeLocationBounds = _.map(mod.namicsOffices, function (item) {
+					return [item.point.lat, item.point.lon];
+				});
 
+				mod.employeeCollection = new Lab.EmployeeCollection(peopleLocationData);
 
 				// All data is ready for usage
 				$ctx.trigger('dataready');
@@ -171,28 +172,18 @@
 			});
 
 			$ctx.on('click', '.widget-map-navigation button', function () {
-				var lat = $(this).data('lat');
-				var lon = $(this).data('lon');
-
-				mod.map.panTo(new L.LatLng(lat, lon));
+				mod.map.panTo(new L.LatLng($(this).data('lat'), $(this).data('lon')));
 			});
 
-			$ctx.on('click', '.show-all', function () {
-				var bounds = _.map(mod.namicsOffices, function (item) {
-					return [item.point.lat, item.point.lon];
-				});
+			$ctx.on('click', '.show-all', $.proxy(mod.showAllOfficeLocations, mod));
 
-				mod.map.fitBounds(bounds);
-			});
-
+			// Fetch data
 			$.when(
 				$.getJSON(urlNamicsPeopleLocations),
 				$.getJSON(urlNamicsOffices)
 			).done(function (a, b) {
 				var peopleLocationData = a[0],
 					officeLocationData = b[0];
-
-
 
 				mod.$ctx.trigger('dataavailable', [peopleLocationData.features, officeLocationData]);
 			});
@@ -248,8 +239,7 @@
 		},
 
 		resetMap : function () {
-			var mod = this,
-				$ctx = mod.$ctx;
+			var mod = this;
 
 			mod.clusterWorkConnectionLayer.clearLayers();
 
@@ -265,10 +255,9 @@
 
 		initMapWidget : function () {
 			var mod = this,
-				$ctx = mod.$ctx,
-				data = mod.peopleLocationData;
+				$ctx = mod.$ctx;
 
-			_.each(data, $.proxy(mod.createClusterAndWorkConnections, mod));
+			_.each(mod.employeeCollection.getCollection(), $.proxy(mod.createClusterAndWorkConnections, mod));
 
 			var groupByWorkCoordinates = _.groupBy(mod.clusterWorkConnections, function (item) {
 				return item.workPoint + ';' + item.cluster.getCenter();
@@ -318,6 +307,15 @@
 
 		},
 
+		/**
+		 * Zooms map out to show all office locations
+		 */
+		showAllOfficeLocations : function () {
+			var mod = this;
+
+			mod.map.fitBounds(mod.officeLocationBounds);
+		},
+
 		showAverageDistanceLayer : function () {
 			var mod = this;
 
@@ -336,48 +334,54 @@
 		},
 
 		/**
-		 * Creates the clusters (mod.clusters) and then connections between work and clusters (mod.clusterWorkConnections)
+		 * Creates the clusters (mod.clusters) and then connections between work and clusters. The connections are added to
+		 * mod.clusterWorkConnections.
+		 *
 		 * This method is called in a loop.
 		 *
 		 * @method createClusterAndWorkConnections
-		 * @param {object} dataItem, a row from the json response
-		 * @return {object} with two properties, clusters and clusterWorkConnections
+		 * @param {Lab.Employee} employee
+		 * @return {boolean} true on success
 		 */
-		createClusterAndWorkConnections : function (dataItem) {
-			var mod = this,
-				itemLat = dataItem.properties.geo_latitude,
-				itemLon = dataItem.properties.geo_longitude,
+		createClusterAndWorkConnections : function (employee) {
 
-				itemPoint = new Lab.Point(itemLat, itemLon),
+			if ((employee instanceof Lab.Employee) === false) {
+				return false;
+			}
+
+			var mod = this,
+				employeeGeo = employee.geo,
+				cluster,
+				newCluster = null,
 				usedCluster = null;
 
+
 			// First check clusters
-			var cluster = mod.findClusterWithinDistance(itemPoint, mod.clusterDistance);
+			cluster = mod.findClusterWithinDistance(employeeGeo, mod.clusterDistance);
 
 			// If no cluster is found, a new one is created
 			if (cluster === null) {
 
-				var newCluster = new Lab.Cluster(itemPoint);
-
+				newCluster = new Lab.Cluster(employeeGeo);
 				mod.clusters.push(newCluster);
 				usedCluster = newCluster;
 
 			} else {
-				cluster.addPoint(itemPoint);
+
+				// If a cluster is found, at the employee to it
+				cluster.addPoint(employeeGeo);
 				usedCluster = cluster;
 			}
 
 			mod.clusterWorkConnections.push(
 				{
 					cluster : usedCluster,
-					workPoint : new Lab.Point(dataItem.properties.geo_latitude_A, dataItem.properties.geo_longitude_A)
+					workPoint : employee.workGeo
 				}
 			);
 
-			return {
-				clusters : mod.clusters,
-				clusterWorkConnections : mod.clusterWorkConnections
-			}
+			return true;
+
 		},
 
 		/**
