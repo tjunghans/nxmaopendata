@@ -84,18 +84,8 @@
 				showAverageDistance : ko.observable()
 			};
 
-			mod.koModel.radioSelectedOptionValue.subscribe(function (value) {
-				mod.clusterDistance = parseFloat(value);
-				mod.resetMap();
-			});
-
-			mod.koModel.showAverageDistance.subscribe(function (value) {
-				 if (value === true) {
-					 mod.showAverageDistanceLayer();
-				 } else {
-					 mod.hideAverageDistanceLayer();
-				 }
-			});
+			mod.koModel.radioSelectedOptionValue.subscribe($.proxy(mod.changeClusterDistance, mod));
+			mod.koModel.showAverageDistance.subscribe($.proxy(mod.toggleAvgDistanceLayer, mod));
 
 			// Event handlers
 			//$ctx.on('dataready', $.proxy(mod.generateFullTable, mod));
@@ -308,6 +298,16 @@
 		},
 
 		/**
+		 * distance is the distance between two employee home locations in km
+		 * @param {number} distance
+		 */
+		changeClusterDistance : function (distance) {
+			var mod = this;
+			mod.clusterDistance = parseFloat(distance);
+			mod.resetMap();
+		},
+
+		/**
 		 * Zooms map out to show all office locations
 		 */
 		showAllOfficeLocations : function () {
@@ -331,6 +331,15 @@
 			var mod = this;
 
 			mod.averageDistanceLayer.clearLayers()
+		},
+
+		toggleAvgDistanceLayer : function (show) {
+			var mod = this;
+			if (show === true) {
+				mod.showAverageDistanceLayer();
+			} else {
+				mod.hideAverageDistanceLayer();
+			}
 		},
 
 		/**
